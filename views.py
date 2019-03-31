@@ -23,3 +23,19 @@ def changes():
         r['dateTime'] = utilities.datetime2str(r['dateTime'])
 
     return json.dumps(rep)
+
+
+@app.route('/changes/<int:gameid>')
+def gamechanges(gameid):
+    limit = utilities.dict_safeget(request.args, 'limit', 20, convert=int, exclude=[0])
+    page = utilities.dict_safeget(request.args, 'page', 1, convert=int, exclude=[0])
+    summary = db.ChangeRecord.select(lambda cr: cr.game.id == gameid).count()
+    pages = summary / limit if summary % limit == 0 else summary / limit + 1
+
+    records = db.ChangeRecord.select(lambda cr: cr.game.id == gameid).order_by(desc(db.ChangeRecord.dateTime))[limit*(page-1):limit*page]
+    rep = {'limit':limit, 'page':page, 'pages':pages, 'records':[r.to_dict() for r in records]}
+    for r in rep['records']:
+        r['dateTime'] = utilities.datetime2str(r['dateTime'])
+
+    return json.dumps(rep)
+
