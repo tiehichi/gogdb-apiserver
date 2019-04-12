@@ -2,7 +2,7 @@
 # encoding: utf-8
 
 from app import app, db
-from flask import request, redirect
+from flask import request, redirect, jsonify
 from pony.orm import *
 import json, utilities
 
@@ -22,7 +22,7 @@ def changes():
     for r in rep['records']:
         r['dateTime'] = utilities.datetime2str(r['dateTime'])
 
-    return json.dumps(rep)
+    return jsonify(rep)
 
 
 @app.route('/changes/<int:gameid>')
@@ -37,5 +37,5 @@ def gamechanges(gameid):
     for r in rep['records']:
         r['dateTime'] = utilities.datetime2str(r['dateTime'])
 
-    return json.dumps(rep)
+    return jsonify(rep)
 
