@@ -41,15 +41,24 @@ def gamechanges(gameid):
 def products():
     limit = DictGet(request.args, 'limit', 20, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
-    summary = db.GameDetail.select().count()
-    pages = summary / limit if summary % limit == 0 else summary / limit + 1
+    query = DictGet(request.args, 'query', '')
 
-    products = db.GameDetail.select().order_by(desc(db.GameDetail.lastUpdate))[limit*(page-1):limit*page]
+    if query == '':
+        summary = db.GameDetail.select().count()
+        prods = db.GameDetail.select().order_by(desc(db.GameDetail.lastUpdate))
+
+    else:
+        prods = select(prod for prod in db.GameDetail).where(lambda prod: query.lower() in prod.title.lower() or query.lower() in str(prod.id))
+        summary = prods.count()
+
+    pages = summary / limit if summary % limit == 0 else summary / limit + 1
+    prods = prods[limit*(page-1):limit*page]
+
     rep = {'limit':limit,
         'page':page,
         'pages':pages,
-        'products':[product.to_dict(exclude='basePrice discount lastPriceUpdate lastDiscountUpdate changeRecord',
-            with_collections=True, related_objects=True) for product in products]}
+        'products':[prod.to_dict(exclude='basePrice discount lastPriceUpdate lastDiscountUpdate changeRecord',
+            with_collections=True, related_objects=True) for prod in prods]}
 
     return jsonify(rep)
 
