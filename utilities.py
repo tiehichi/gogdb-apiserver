@@ -1,21 +1,31 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
+from flask.json import JSONEncoder
 import datetime
 import re
 
-def datetime2str(date):
-    if date == None:
-        return ""
-    return date.strftime('%Y-%m-%d %H:%M:%S')
 
-def dict_safeget(dictobj, key, default, convert=None, exclude=[]):
-    if key in dictobj:
-        if convert == None:
-            value = dictobj.get(key)
+class GOGJSONEncoder(JSONEncoder):
+
+    def default(self, obj):
+        try:
+            if isinstance(obj, datetime.datetime):
+                return obj.strftime('%Y-%m-%d %H:%M:%S')
+        except TypeError:
+                pass
         else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
+
+def DictGet(obj, key, default=None, converts=[], exclude=[]):
+    if isinstance(obj, dict):
+        value = obj.get(key, default)
+        if len(converts) != 0:
             try:
-                value = convert(dictobj.get(key))
+                for convert in converts:
+                    value = convert(value)
             except:
                 value = default
         if value in exclude:
@@ -24,6 +34,7 @@ def dict_safeget(dictobj, key, default, convert=None, exclude=[]):
             return value
     else:
         return default
+
 
 def specstr_cleaner(specstr):
     if specstr:

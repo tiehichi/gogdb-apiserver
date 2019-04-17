@@ -4,7 +4,7 @@
 from app import app, db
 from flask import request, redirect, jsonify
 from pony.orm import *
-import json, utilities
+from utilities import DictGet
 
 @app.route('/')
 def index():
@@ -12,30 +12,26 @@ def index():
 
 @app.route('/changes')
 def changes():
-    limit = utilities.dict_safeget(request.args, 'limit', 50, convert=int, exclude=[0])
-    page = utilities.dict_safeget(request.args, 'page', 1, convert=int, exclude=[0])
+    limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
+    page = DictGet(request.args, 'page', 1, [int, abs], [0])
     summary = db.ChangeRecord.select().count()
     pages = summary / limit if summary % limit == 0 else summary / limit + 1
 
     records = db.ChangeRecord.select().order_by(desc(db.ChangeRecord.dateTime))[limit*(page-1):limit*page]
     rep = {'limit':limit, 'page':page, 'pages':pages, 'records':[r.to_dict() for r in records]}
-    for r in rep['records']:
-        r['dateTime'] = utilities.datetime2str(r['dateTime'])
 
     return jsonify(rep)
 
 
 @app.route('/changes/<int:gameid>')
 def gamechanges(gameid):
-    limit = utilities.dict_safeget(request.args, 'limit', 20, convert=int, exclude=[0])
-    page = utilities.dict_safeget(request.args, 'page', 1, convert=int, exclude=[0])
+    limit = DictGet(request.args, 'limit', 20, [int, abs], [0])
+    page = DictGet(request.args, 'page', 1, [int, abs], [0])
     summary = db.ChangeRecord.select(lambda cr: cr.game.id == gameid).count()
     pages = summary / limit if summary % limit == 0 else summary / limit + 1
 
     records = db.ChangeRecord.select(lambda cr: cr.game.id == gameid).order_by(desc(db.ChangeRecord.dateTime))[limit*(page-1):limit*page]
     rep = {'limit':limit, 'page':page, 'pages':pages, 'records':[r.to_dict() for r in records]}
-    for r in rep['records']:
-        r['dateTime'] = utilities.datetime2str(r['dateTime'])
 
     return jsonify(rep)
 
