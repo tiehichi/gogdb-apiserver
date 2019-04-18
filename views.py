@@ -54,7 +54,8 @@ def products():
     pages = summary / limit if summary % limit == 0 else summary / limit + 1
     prods = prods[limit*(page-1):limit*page]
 
-    rep = {'limit':limit,
+    rep = {'count':summary,
+        'limit':limit,
         'page':page,
         'pages':pages,
         'products':[prod.to_dict(exclude='basePrice discount lastPriceUpdate lastDiscountUpdate changeRecord',
@@ -71,3 +72,60 @@ def productdetail(gameid):
             with_collections=True, related_objects=True))
     else:
         return jsonify({'id':gameid, 'error':True, 'status':404, 'message':'Product Not Found'}), 404
+
+
+@app.route('/price/<int:gameid>')
+def baseprice(gameid):
+    limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
+    page = DictGet(request.args, 'page', 1, [int, abs], [0])
+
+    price = db.BasePrice.select(lambda p: p.game.id == gameid)
+    if not price:
+        return jsonify({'id':gameid, 'error':True, 'status':404, 'message':'Product Not Found'}), 404
+
+    ccode = request.args.get('countryCode', '')
+
+    if ccode == '':
+
+        summary = price.count()
+        pages = summary / limit if summary % limit == 0 else summary / limit + 1
+
+        price = price[limit*(page-1):limit*page]
+
+        rep = {'count':summary,
+                'limit':limit,
+                'page':page,
+                'pages':pages,
+                'baseprice':[p.to_dict(exclude='game') for p in price]
+                }
+    else:
+        price = price.where(lambda p: p.country == ccode.upper())
+
+        if not price:
+            return jsonify({'id':gameid, 'error':True, 'status':404, 'message':'Country Code Not Found'}), 404
+
+        rep = price.first().to_dict(exclude='game')
+
+    return jsonify(rep)
+
+
+@app.route('/discount/<int:gameid>')
+def discount(gameid):
+    limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
+    page = DictGet(request.args, 'page', 1, [int, abs], [0])
+
+    dis = db.Discount.select(lambda d: d.game.id == gameid)
+    if not dis:
+        return jsonify({'id':gameid, 'error':True, 'status':404, 'message':'Product Not Found'}), 404
+
+    summary = dis.count()
+    pages = summary / limit if summary % limit == 0 else summary / limit + 1
+
+    dis = dis[limit*(page-1):limit*page]
+    rep = {'count':summary,
+            'limit':limit,
+            'page':page,
+            'pages':pages,
+            'discount':[d.to_dict(exclude='game') for d in dis]
+            }
+    return jsonify(rep)
