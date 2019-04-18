@@ -8,10 +8,11 @@ from utilities import DictGet
 
 @app.route('/')
 def index():
-    return redirect('/changes')
+    return redirect('/changes/')
 
 
 @app.route('/changes')
+@app.route('/changes/')
 def changes():
     limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
@@ -25,6 +26,7 @@ def changes():
 
 
 @app.route('/changes/<int:gameid>')
+@app.route('/changes/<int:gameid>/')
 def gamechanges(gameid):
     limit = DictGet(request.args, 'limit', 20, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
@@ -36,8 +38,8 @@ def gamechanges(gameid):
 
     return jsonify(rep)
 
-
 @app.route('/products')
+@app.route('/products/')
 def products():
     limit = DictGet(request.args, 'limit', 20, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
@@ -65,6 +67,7 @@ def products():
 
 
 @app.route('/products/<int:gameid>')
+@app.route('/products/<int:gameid>/')
 def productdetail(gameid):
     product = db.GameDetail.get(lambda pro: pro.id == gameid)
     if product:
@@ -75,6 +78,7 @@ def productdetail(gameid):
 
 
 @app.route('/price/<int:gameid>')
+@app.route('/price/<int:gameid>/')
 def baseprice(gameid):
     limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
@@ -110,6 +114,7 @@ def baseprice(gameid):
 
 
 @app.route('/discount/<int:gameid>')
+@app.route('/discount/<int:gameid>/')
 def discount(gameid):
     limit = DictGet(request.args, 'limit', 50, [int, abs], [0])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
