@@ -136,7 +136,7 @@ def discount(gameid):
     limit = DictGet(request.args, 'limit', 50, [int, abs])
     page = DictGet(request.args, 'page', 1, [int, abs], [0])
 
-    dis = db.Discount.select(lambda d: d.game.id == gameid)
+    dis = db.Discount.select(lambda d: d.game.id == gameid).order_by(desc(db.Discount.dateTime))
     if not dis:
         return jsonify({'id':gameid, 'error':True, 'status':404, 'message':'Product Not Found'}), 404
 
